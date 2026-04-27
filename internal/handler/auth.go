@@ -8,7 +8,10 @@ import (
 
 func AuthRoutes(authService *service.AuthService) chi.Router {
 	r := chi.NewRouter()
-	r.Post(DefaultApiRoute+"/user/register", authService.Registration)
 
+	r.Use(AuthMiddleware())
+
+	r.Post(DefaultApiRoute+"/user/register", authService.Registration)
+	
 	return r
 }
