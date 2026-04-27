@@ -1,18 +1,12 @@
 package service
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
+	"net/http"
 )
 
-func (s *ShortenerService) Sign(userID string) string {
-	mac := hmac.New(sha256.New, s.secret)
-	mac.Write([]byte(userID))
-	return hex.EncodeToString(mac.Sum(nil))
+type AuthService struct {
 }
 
-func (s *ShortenerService) Verify(userID string, signature string) bool {
-	expected := s.Sign(userID)
-	return hmac.Equal([]byte(expected), []byte(signature))
+func (auth *AuthService) Registration(w http.ResponseWriter, r *http.Request) {
+
 }

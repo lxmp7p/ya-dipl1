@@ -1,52 +1,47 @@
 package handler
 
 import (
-	"database/sql"
+	"log"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/lxmp7p/ya-dipl1/internal/config"
 	"github.com/lxmp7p/ya-dipl1/internal/service"
-	"github.com/sirupsen/logrus"
+	"github.com/lxmp7p/ya-dipl1/internal/utils.go"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	DEFAULT_API_ROUTE = "/api"
 )
 
 type Handler struct {
-	Service *service.ShortenerService
-}
-
-func NewHandler(s *service.ShortenerService) *Handler {
-	return &Handler{
-		Service: s,
-	}
-}
-
-type App struct {
+	Services *service.Services
 	Config   config.Config
-	Storage  service.URLstorage
-	Logger   *logrus.Logger
-	Database *sql.DB
+	Logger   *log.Logger
+	Database *pgxpool.Pool
 }
 
-func InitRoutes(app App) chi.Router {
-	app.validateApp()
-	shortenerService := &service.ShortenerService{
-		Config:   app.Config,
-		Storage:  app.Storage,
-		Database: app.Database,
+func NewHandler(logger *log.Logger) *Handler {
+	return &Handler{
+		Logger: logger,
 	}
-	shortenerService.StartDeleteWorker()
+}
 
-	handler := NewHandler(shortenerService)
+func (handler *Handler) InitRoutes() chi.Router {
+	handler.validateHandler()
+
+	services := service.NewServices(service.AuthService{})
+	handler.Services = services
+
 	apiRouter := chi.NewRouter()
-	apiRouter.Use(CompressMiddleware())
-	apiRouter.Use(LoggingMiddleware(app.Logger))
-	apiRouter.Use(handler.AuthMiddleware)
 
-	apiRouter.Mount("/", ShortenerRoutes(shortenerService))
+	apiRouter.Mount("/", AuthRoutes(&services.Auth))
 	return apiRouter
 }
 
-func (app *App) validateApp() {
-	if app.Logger == nil {
-		app.Logger = logrus.New()
+func (handler *Handler) validateHandler() {
+	if handler.Logger == nil {
+		handler.Logger = utils.CreateLogger()
 	}
 }
