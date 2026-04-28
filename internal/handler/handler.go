@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/lxmp7p/ya-dipl1/internal/config"
 	"github.com/lxmp7p/ya-dipl1/internal/service"
@@ -18,13 +18,14 @@ var (
 type Handler struct {
 	Services *service.Services
 	Config   config.Config
-	Logger   *log.Logger
+	Logger   *slog.Logger
 	Database *pgxpool.Pool
 }
 
-func NewHandler(logger *log.Logger) *Handler {
+func NewHandler(logger *slog.Logger, database *pgxpool.Pool) *Handler {
 	return &Handler{
-		Logger: logger,
+		Logger:   logger,
+		Database: database,
 	}
 }
 

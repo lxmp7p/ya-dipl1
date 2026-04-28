@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 
+	"github.com/lxmp7p/ya-dipl1/internal/repository"
+
 	"github.com/lxmp7p/ya-dipl1/internal/config"
 	"github.com/lxmp7p/ya-dipl1/internal/handler"
 	"github.com/lxmp7p/ya-dipl1/internal/utils.go"
@@ -13,10 +15,12 @@ func main() {
 	cfg := config.NewConfig()
 	cfg.InitConfig()
 
-	handler := handler.NewHandler(logger)
+	database, err := repository.InitDB(cfg, logger)
+
+	handler := handler.NewHandler(logger, database)
 	r := handler.InitRoutes()
 
-	logger.Printf("Starting server on %s", cfg.Addr)
-	err := http.ListenAndServe(cfg.Addr, r)
-	logger.Fatalf("Server stopped: %v", err)
+	logger.Info("Starting server on %s", cfg.Addr)
+	err = http.ListenAndServe(cfg.Addr, r)
+	logger.Info("Server stopped: %v", err)
 }

@@ -1,0 +1,41 @@
+package repository
+
+import (
+	"context"
+	"log/slog"
+
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/lxmp7p/ya-dipl1/internal/config"
+)
+
+func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
+	if config.DatabaseDsn != "" {
+		logger.Info("Running migrations...")
+		runMigrations(config.DatabaseDsn, logger)
+		logger.Info("Migrations done")
+	}
+
+	pool, err := pgxpool.New(context.Background(), config.DatabaseDsn)
+	if err != nil {
+		return nil, err
+	}
+
+	return pool, nil
+}
+
+func runMigrations(DSN string, logger *slog.Logger) {
+	migrationsPath := "file://migrations"
+	dbURL := DSN
+	m, err := migrate.New(migrationsPath, dbURL)
+	if err != nil {
+		logger.Error("Failed to initialize migrate: %v", err)
+		return
+	}
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		logger.Error("Migration failed: %v", err)
+		return
+	}
+
+	logger.Info("Migrations applied successfully!")
+}
