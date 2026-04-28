@@ -36,8 +36,9 @@ func (handler *Handler) InitRoutes() chi.Router {
 	handler.Services = services
 
 	apiRouter := chi.NewRouter()
+	authHandler := AuthHandler{authService: services.Auth}
 
-	apiRouter.Mount("/", AuthRoutes(&services.Auth))
+	apiRouter.Mount("/", authHandler.AuthRoutes())
 	return apiRouter
 }
 
