@@ -1,11 +1,15 @@
 package service
 
+import "log/slog"
+
 type Services struct {
-	Auth AuthService
+	Logger *slog.Logger
+	Auth   AuthService
 }
 
-func NewServices(authService AuthService) *Services {
+func NewServices(logger *slog.Logger, authService AuthService) *Services {
 	return &Services{
-		Auth: authService,
+		Logger: logger,
+		Auth:   authService,
 	}
 }

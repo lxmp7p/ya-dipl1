@@ -8,7 +8,7 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 		VALUES ($1, $2)
 	`
 
-	_, err := rep.db.Exec(ctx, query, login, passwordHash)
+	_, err := rep.Db.Exec(ctx, query, login, passwordHash)
 	return err
 }
 
@@ -17,6 +17,6 @@ func (rep *Repository) CreateSession(ctx context.Context, userLogin, sessionID s
 		INSERT INTO sessions (session_id, login)
 		VALUES ($1, $2)
 	`
-	_, err := rep.db.Exec(ctx, query, sessionID, userLogin)
+	_, err := rep.Db.Exec(ctx, query, sessionID, userLogin)
 	return err
 }

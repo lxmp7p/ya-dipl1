@@ -12,6 +12,12 @@ type AuthService struct {
 	repo repository.Auth
 }
 
+func NewAuthService(repo repository.Auth) AuthService {
+	return AuthService{
+		repo: repo,
+	}
+}
+
 var (
 	ErrUserExists = errors.New("user already exists")
 )
@@ -27,7 +33,6 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 		if isUniqueViolation(err) {
 			return "", ErrUserExists
 		}
-
 		return "", err
 	}
 

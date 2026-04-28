@@ -5,6 +5,8 @@ import (
 	"log/slog"
 
 	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lxmp7p/ya-dipl1/internal/config"
 )
@@ -25,11 +27,10 @@ func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 }
 
 func runMigrations(DSN string, logger *slog.Logger) {
-	migrationsPath := "file://migrations"
-	dbURL := DSN
-	m, err := migrate.New(migrationsPath, dbURL)
+	migrationsPath := "file://../../migrations"
+	m, err := migrate.New(migrationsPath, DSN)
 	if err != nil {
-		logger.Error("Failed to initialize migrate: %v", err)
+		logger.Error("Failed to initialize migrate", "err", err)
 		return
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {

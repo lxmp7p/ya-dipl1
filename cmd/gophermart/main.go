@@ -14,7 +14,6 @@ func main() {
 	logger := utils.CreateLogger()
 	cfg := config.NewConfig()
 	cfg.InitConfig()
-
 	database, err := repository.InitDB(cfg, logger)
 
 	handler := handler.NewHandler(logger, database)

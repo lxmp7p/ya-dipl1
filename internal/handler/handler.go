@@ -4,6 +4,7 @@ import (
 	"log/slog"
 
 	"github.com/lxmp7p/ya-dipl1/internal/config"
+	"github.com/lxmp7p/ya-dipl1/internal/repository"
 	"github.com/lxmp7p/ya-dipl1/internal/service"
 	"github.com/lxmp7p/ya-dipl1/internal/utils.go"
 
@@ -31,12 +32,22 @@ func NewHandler(logger *slog.Logger, database *pgxpool.Pool) *Handler {
 
 func (handler *Handler) InitRoutes() chi.Router {
 	handler.validateHandler()
+	repo := repository.NewRepository(handler.Database)
 
-	services := service.NewServices(service.AuthService{})
+	authService := service.NewAuthService(&repo)
+
+	services := service.NewServices(
+		handler.Logger,
+		authService,
+	)
+
 	handler.Services = services
 
 	apiRouter := chi.NewRouter()
-	authHandler := AuthHandler{authService: services.Auth}
+	authHandler := AuthHandler{
+		logger:      handler.Logger,
+		authService: services.Auth,
+	}
 
 	apiRouter.Mount("/", authHandler.AuthRoutes())
 	return apiRouter

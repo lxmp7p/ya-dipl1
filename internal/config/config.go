@@ -29,7 +29,7 @@ func (cfg *Config) InitConfig() Config {
 func (cfg *Config) argsConfigurator() {
 	addr := flag.String("a", "127.0.0.1:8080", "server ip:port")
 	balanceSystemAddr := flag.String("r", "http://127.0.0.1:8080", "server result ip:port")
-	databaseDsn := flag.String("d", "", "database connection string")
+	databaseDsn := flag.String("d", "postgres://test:test@localhost:5432/database", "database connection string")
 
 	flag.Parse()
 

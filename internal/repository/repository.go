@@ -7,7 +7,13 @@ import (
 )
 
 type Repository struct {
-	db *pgxpool.Pool
+	Db *pgxpool.Pool
+}
+
+func NewRepository(database *pgxpool.Pool) Repository {
+	return Repository{
+		Db: database,
+	}
 }
 
 type Auth interface {
