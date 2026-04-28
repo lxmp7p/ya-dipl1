@@ -59,15 +59,15 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Authorization", sessionID)
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
 		Value:    sessionID,
 		HttpOnly: true,
 		Path:     "/",
 	})
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Authorization", sessionID)
 
 	json.NewEncoder(w).Encode(RegisterResponse{
 		SessionID: sessionID,
