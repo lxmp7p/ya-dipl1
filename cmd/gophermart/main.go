@@ -20,7 +20,7 @@ func main() {
 	handler := handler.NewHandler(logger, database)
 	r := handler.InitRoutes()
 
-	logger.Info("Starting server on %s", cfg.Addr)
+	logger.Info("Starting server", "addr", cfg.Addr)
 	err = http.ListenAndServe(cfg.Addr, r)
 	logger.Info("Server stopped: %v", err)
 }

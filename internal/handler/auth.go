@@ -26,7 +26,7 @@ type AuthHandler struct {
 func (auth *AuthHandler) AuthRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Use(AuthMiddleware())
+	//r.Use(AuthMiddleware())
 
 	r.Post(DefaultApiRoute+"/user/register", auth.Registration)
 
@@ -68,6 +68,8 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		Path:     "/",
 	})
+
+	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(RegisterResponse{
 		SessionID: sessionID,
