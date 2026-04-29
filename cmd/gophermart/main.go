@@ -15,6 +15,9 @@ func main() {
 	cfg := config.NewConfig()
 	cfg.InitConfig()
 	database, err := repository.InitDB(cfg, logger)
+	if err != nil {
+		panic("failed init db")
+	}
 
 	handler := handler.NewHandler(logger, database)
 	r := handler.InitRoutes()
