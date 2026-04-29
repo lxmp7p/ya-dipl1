@@ -18,10 +18,6 @@ func NewAuthService(repo repository.Auth) *AuthService {
 	}
 }
 
-var (
-	ErrUserExists = errors.New("user already exists")
-)
-
 func (auth *AuthService) Registration(ctx context.Context, login, password string) (string, error) {
 	hash, err := HashPassword(password)
 	if err != nil {
@@ -30,7 +26,7 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 
 	err = auth.repo.Registration(ctx, login, hash)
 	if err != nil {
-		if isUniqueViolation(err) {
+		if errors.Is(err, repository.ErrUserExists) {
 			return "", ErrUserExists
 		}
 		return "", err
@@ -45,8 +41,30 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 	return sessionID, nil
 }
 
+func (auth *AuthService) Login(ctx context.Context, login, password string) (string, error) {
+	authData, err := auth.repo.GetAuthDataByLogin(ctx, login)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return "", ErrInvalidCredentials
+		}
+		return "", err
+	}
+
+	if ok := CheckPassword(password, authData.Password_hash); !ok {
+		return "", ErrInvalidCredentials
+	}
+
+	sessionID := uuid.NewString()
+	err = auth.repo.CreateSession(ctx, login, sessionID)
+	if err != nil {
+		return "", err
+	}
+
+	return sessionID, nil
+}
+
 func (auth *AuthService) ValidateToken(ctx context.Context, login, hash string) (bool, error) {
-	_, err := auth.repo.ValidatePasswordHash(ctx, login, hash)
+	_, err := auth.repo.GetAuthDataByLogin(ctx, login)
 	if err != nil {
 		return false, err
 	}

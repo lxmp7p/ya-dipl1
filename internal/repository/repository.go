@@ -18,6 +18,6 @@ func NewRepository(database *pgxpool.Pool) Repository {
 
 type Auth interface {
 	Registration(ctx context.Context, login, password string) error
-	ValidatePasswordHash(ctx context.Context, login, hash string) (string, error)
+	GetAuthDataByLogin(ctx context.Context, login string) (AuthData, error)
 	CreateSession(ctx context.Context, userLogin, sessionID string) error
 }

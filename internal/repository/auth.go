@@ -5,7 +5,13 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
+
+type AuthData struct {
+	Login         string
+	Password_hash string
+}
 
 func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) error {
 	query := `
@@ -14,22 +20,28 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 	`
 
 	_, err := rep.Db.Exec(ctx, query, login, passwordHash)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrUserExists
+		}
+	}
 	return err
 }
 
-func (rep *Repository) ValidatePasswordHash(ctx context.Context, login, hash string) (string, error) {
+func (rep *Repository) GetAuthDataByLogin(ctx context.Context, login string) (AuthData, error) {
 	query := `
-		SELECT password_hash FROM auth WHERE login = $1 AND password_hash = $2
+		SELECT login, password_hash FROM auth WHERE login = $1
 	`
-	var passwordHash string
-	err := rep.Db.QueryRow(ctx, query, login, hash).Scan(&passwordHash)
+	var authData AuthData
+	err := rep.Db.QueryRow(ctx, query, login).Scan(&authData.Login, &authData.Password_hash)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", errors.New("UserNotFound")
+			return AuthData{}, ErrUserNotFound
 		}
-		return "", err
+		return AuthData{}, err
 	}
-	return passwordHash, nil
+	return authData, nil
 }
 
 func (rep *Repository) CreateSession(ctx context.Context, userLogin, sessionID string) error {

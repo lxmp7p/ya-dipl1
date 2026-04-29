@@ -24,5 +24,5 @@ func main() {
 
 	logger.Info("Starting server", "addr", cfg.Addr)
 	err = http.ListenAndServe(cfg.Addr, r)
-	logger.Info("Server stopped: %v", err)
+	logger.Info("Server stopped", "err", err)
 }

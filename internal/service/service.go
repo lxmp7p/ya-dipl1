@@ -13,6 +13,7 @@ type Services struct {
 
 type AuthServiceInterface interface {
 	Registration(ctx context.Context, login, password string) (string, error)
+	Login(ctx context.Context, login, password string) (string, error)
 	ValidateToken(ctx context.Context, login, hash string) (bool, error)
 }
 
@@ -22,6 +23,7 @@ type OrderServiceInterface interface {
 
 type Service interface {
 	Auth() AuthServiceInterface
+	Order() OrderServiceInterface
 }
 
 // Конструктор
@@ -40,6 +42,6 @@ func (s *Services) Auth() AuthServiceInterface {
 	return s.auth
 }
 
-func (s *Services) Orders() OrderServiceInterface {
+func (s *Services) Order() OrderServiceInterface {
 	return s.order
 }

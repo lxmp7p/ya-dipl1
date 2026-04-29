@@ -11,12 +11,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type RegisterRequest struct {
+type AuthRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type RegisterResponse struct {
+type AuthResponse struct {
 	SessionID string `json:"session_id"`
 }
 
@@ -31,12 +31,13 @@ func (auth *AuthHandler) AuthRoutes() chi.Router {
 	//r.Use(AuthMiddleware())
 
 	r.Post(DefaultApiRoute+"/user/register", auth.Registration)
+	r.Post(DefaultApiRoute+"/user/login", auth.Login)
 
 	return r
 }
 
 func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
-	var request RegisterRequest
+	var request AuthRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -75,7 +76,49 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(RegisterResponse{
+	json.NewEncoder(w).Encode(AuthResponse{
+		SessionID: sessionID,
+	})
+}
+
+func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var request AuthRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if request.Login == "" || request.Password == "" {
+		http.Error(w, "empty fields", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := auth.authService.Login(r.Context(), request.Login, request.Password)
+
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			http.Error(w, "Invalid login or password", http.StatusUnauthorized)
+			return
+		}
+		auth.logger.Error("Login failed", "error", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Authorization", sessionID)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		HttpOnly: true,
+		Path:     "/",
+	})
+
+	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(AuthResponse{
 		SessionID: sessionID,
 	})
 }
