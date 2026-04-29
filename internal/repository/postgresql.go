@@ -29,7 +29,7 @@ func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 }
 
 func runMigrations(DSN string, logger *slog.Logger) error {
-	migrationsPath := "file://../../migrations"
+	migrationsPath := "file://migrations"
 	m, err := migrate.New(migrationsPath, DSN)
 	if err != nil {
 		logger.Error("Failed to initialize migrate", "err", err)
