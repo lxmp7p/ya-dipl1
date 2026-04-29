@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
 )
@@ -16,11 +15,7 @@ func AuthMiddleware(auth repository.Auth) func(http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
-			token := strings.TrimPrefix(authHeader, "Bearer ")
-			if token == authHeader {
-				w.WriteHeader(http.StatusUnauthorized)
-			}
-			session, err := auth.CheckAuthDataBySession(r.Context(), token)
+			session, err := auth.CheckAuthDataBySession(r.Context(), authHeader)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
