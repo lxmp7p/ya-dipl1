@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -53,10 +54,13 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, service.ErrUserExists):
+			auth.logger.Error(err.Error())
+			fmt.Println("aaaaaaaaaaaaaa")
 			http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 
 		default:
-			auth.logger.Debug(err.Error())
+			auth.logger.Error(err.Error())
+			fmt.Println("bbbbbbbbbbbbbbbbbb")
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
