@@ -25,6 +25,16 @@ type AuthHandler struct {
 	authService *service.AuthService
 }
 
+func (r *AuthRequest) Validate() error {
+	if r.Login == "" {
+		return errors.New("login is required")
+	}
+	if r.Password == "" {
+		return errors.New("password is required")
+	}
+	return nil
+}
+
 func (auth *AuthHandler) AuthRoutes() chi.Router {
 	r := chi.NewRouter()
 
@@ -44,8 +54,8 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Login == "" || request.Password == "" {
-		http.Error(w, "empty fields", http.StatusBadRequest)
+	if err := request.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -89,8 +99,8 @@ func (auth *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if request.Login == "" || request.Password == "" {
-		http.Error(w, "empty fields", http.StatusBadRequest)
+	if err := request.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

@@ -11,6 +11,10 @@ import (
 	"github.com/lxmp7p/ya-dipl1/internal/config"
 )
 
+var (
+	migrationsPath = "file://migrations"
+)
+
 func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 	if config.DatabaseDsn != "" {
 		logger.Info("Running migrations...")
@@ -29,14 +33,13 @@ func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 }
 
 func runMigrations(DSN string, logger *slog.Logger) error {
-	migrationsPath := "file://migrations"
 	m, err := migrate.New(migrationsPath, DSN)
 	if err != nil {
 		logger.Error("Failed to initialize migrate", "err", err)
 		return err
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		logger.Error("Migration failed: %v", err)
+		logger.Error("Migration failed:", "err", err)
 		return err
 	}
 
