@@ -33,7 +33,7 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 	}
 
 	sessionID := uuid.NewString()
-	err = auth.repo.CreateSession(ctx, user.Login, user.ID, user.ID)
+	err = auth.repo.CreateSession(ctx, user.Login, user.ID, sessionID)
 	if err != nil {
 		return "", err
 	}
