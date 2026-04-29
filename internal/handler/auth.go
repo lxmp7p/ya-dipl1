@@ -40,8 +40,8 @@ func (auth *AuthHandler) AuthRoutes() chi.Router {
 
 	//r.Use(AuthMiddleware())
 
-	r.Post(DefaultApiRoute+"/user/register", auth.Registration)
-	r.Post(DefaultApiRoute+"/user/login", auth.Login)
+	r.Post("/register", auth.Registration)
+	r.Post("/login", auth.Login)
 
 	return r
 }

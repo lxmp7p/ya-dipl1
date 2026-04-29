@@ -8,5 +8,11 @@ CREATE TABLE auth (
 
 CREATE TABLE sessions (
 	session_id TEXT PRIMARY KEY,
-	login TEXT NOT NULL
+	login TEXT NOT NULL,
+    user_id UUID NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE sessions 
+ADD CONSTRAINT fk_sessions_user 
+FOREIGN KEY (user_id) REFERENCES auth(id);

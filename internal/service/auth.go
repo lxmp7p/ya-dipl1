@@ -24,7 +24,7 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 		return "", err
 	}
 
-	err = auth.repo.Registration(ctx, login, hash)
+	user, err := auth.repo.Registration(ctx, login, hash)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserExists) {
 			return "", ErrUserExists
@@ -33,7 +33,7 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 	}
 
 	sessionID := uuid.NewString()
-	err = auth.repo.CreateSession(ctx, login, sessionID)
+	err = auth.repo.CreateSession(ctx, user.Login, user.ID, user.ID)
 	if err != nil {
 		return "", err
 	}
@@ -55,7 +55,7 @@ func (auth *AuthService) Login(ctx context.Context, login, password string) (str
 	}
 
 	sessionID := uuid.NewString()
-	err = auth.repo.CreateSession(ctx, login, sessionID)
+	err = auth.repo.CreateSession(ctx, login, authData.UserId, sessionID)
 	if err != nil {
 		return "", err
 	}

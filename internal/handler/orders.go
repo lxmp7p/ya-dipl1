@@ -19,7 +19,7 @@ type OrderHandler struct {
 func (orders *OrderHandler) OrdersRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Post(DefaultApiRoute+"/user/orders", orders.UploadOrder)
+	r.Post("/", orders.UploadOrder)
 
 	return r
 }
@@ -38,8 +38,16 @@ func (orders *OrderHandler) UploadOrder(w http.ResponseWriter, r *http.Request) 
 	}
 
 	orderNumber := strings.TrimSpace(string(body))
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
-	orders.orderService.UploadOrder(r.Context(), orderNumber)
+	if err := orders.orderService.UploadOrder(r.Context(), orderNumber, userID); err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusAccepted)
 }

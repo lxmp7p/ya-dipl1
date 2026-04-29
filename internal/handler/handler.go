@@ -35,6 +35,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 	repo := repository.NewRepository(handler.Database)
 
 	authService := service.NewAuthService(&repo)
+	orderService := service.NewOrderService(&repo)
 
 	services := service.NewServices(
 		handler.Logger,
@@ -49,7 +50,16 @@ func (handler *Handler) InitRoutes() chi.Router {
 		authService: authService,
 	}
 
-	apiRouter.Mount("/", authHandler.AuthRoutes())
+	orderHandler := OrderHandler{
+		logger:       handler.Logger,
+		orderService: orderService,
+	}
+
+	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())
+	apiRouter.Group(func(r chi.Router) {
+		r.Use(AuthMiddleware(&repo))
+		r.Mount(DefaultApiRoute+"/user/orders", orderHandler.OrdersRoutes())
+	})
 	return apiRouter
 }
 

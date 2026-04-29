@@ -18,7 +18,7 @@ type AuthServiceInterface interface {
 }
 
 type OrderServiceInterface interface {
-	UploadOrder(ctx context.Context, orderString string) error
+	UploadOrder(ctx context.Context, orderString string, userID int) error
 }
 
 type Service interface {

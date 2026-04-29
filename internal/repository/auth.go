@@ -11,30 +11,48 @@ import (
 type AuthData struct {
 	Login         string
 	Password_hash string
+	UserId        string
 }
 
-func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) error {
+type SessionData struct {
+	SessionId string
+	Login     string
+	UserId    string
+}
+
+type User struct {
+	ID           string `json:"id"`
+	Login        string `json:"login"`
+	PasswordHash string `json:"-"`
+}
+
+func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) (User, error) {
 	query := `
 		INSERT INTO auth (login, password_hash)
-		VALUES ($1, $2)
+		VALUES ($1, $2) RETURNING id, login, password_hash
 	`
+	var user User
+	err := rep.Db.QueryRow(ctx, query, login, passwordHash).Scan(
+		&user.ID,
+		&user.Login,
+		&user.PasswordHash,
+	)
 
-	_, err := rep.Db.Exec(ctx, query, login, passwordHash)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return ErrUserExists
+			return User{}, ErrUserExists
 		}
 	}
-	return err
+	return user, err
 }
 
 func (rep *Repository) GetAuthDataByLogin(ctx context.Context, login string) (AuthData, error) {
 	query := `
-		SELECT login, password_hash FROM auth WHERE login = $1
+		SELECT login, password_hash, id FROM auth WHERE login = $1
 	`
 	var authData AuthData
-	err := rep.Db.QueryRow(ctx, query, login).Scan(&authData.Login, &authData.Password_hash)
+	err := rep.Db.QueryRow(ctx, query, login).Scan(&authData.Login, &authData.Password_hash, &authData.UserId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return AuthData{}, ErrUserNotFound
@@ -44,11 +62,24 @@ func (rep *Repository) GetAuthDataByLogin(ctx context.Context, login string) (Au
 	return authData, nil
 }
 
-func (rep *Repository) CreateSession(ctx context.Context, userLogin, sessionID string) error {
+func (rep *Repository) CheckAuthDataBySession(ctx context.Context, sessionID string) (SessionData, error) {
 	query := `
-		INSERT INTO sessions (session_id, login)
-		VALUES ($1, $2)
+		SELECT session_id, login, user_id FROM sessions WHERE session_id = $1
 	`
-	_, err := rep.Db.Exec(ctx, query, sessionID, userLogin)
+
+	var session SessionData
+	err := rep.Db.QueryRow(ctx, query, sessionID).Scan(&session.SessionId, &session.Login, &session.UserId)
+	if err != nil {
+		return SessionData{}, err
+	}
+	return session, nil
+}
+
+func (rep *Repository) CreateSession(ctx context.Context, userLogin string, userID string, sessionID string) error {
+	query := `
+		INSERT INTO sessions (session_id, login, user_id)
+		VALUES ($1, $2, $3)
+	`
+	_, err := rep.Db.Exec(ctx, query, sessionID, userLogin, userID)
 	return err
 }
