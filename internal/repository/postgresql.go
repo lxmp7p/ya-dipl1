@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	migrationsPath = "file://../../migrations"
+	migrationsPath = "file://migrations"
 )
 
 func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
