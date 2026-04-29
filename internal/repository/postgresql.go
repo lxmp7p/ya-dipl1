@@ -14,7 +14,9 @@ import (
 func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 	if config.DatabaseDsn != "" {
 		logger.Info("Running migrations...")
-		runMigrations(config.DatabaseDsn, logger)
+		if err := runMigrations(config.DatabaseDsn, logger); err != nil {
+			return nil, err
+		}
 		logger.Info("Migrations done")
 	}
 
@@ -26,17 +28,18 @@ func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func runMigrations(DSN string, logger *slog.Logger) {
+func runMigrations(DSN string, logger *slog.Logger) error {
 	migrationsPath := "file://../../migrations"
 	m, err := migrate.New(migrationsPath, DSN)
 	if err != nil {
 		logger.Error("Failed to initialize migrate", "err", err)
-		return
+		return err
 	}
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		logger.Error("Migration failed: %v", err)
-		return
+		return err
 	}
 
 	logger.Info("Migrations applied successfully!")
+	return nil
 }

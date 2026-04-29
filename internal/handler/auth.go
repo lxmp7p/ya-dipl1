@@ -3,8 +3,6 @@ package handler
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 
@@ -38,7 +36,6 @@ func (auth *AuthHandler) AuthRoutes() chi.Router {
 }
 
 func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
-	log.Print("aaaaaaaaaaaaaaaaaaaaaaaaa")
 	var request RegisterRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -54,20 +51,13 @@ func (auth *AuthHandler) Registration(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := auth.authService.Registration(r.Context(), request.Login, request.Password)
 
 	if err != nil {
-		log.Printf("Registration error for login '%s': %v", request.Login, err)
-
 		switch {
 		case errors.Is(err, service.ErrUserExists):
-			log.Printf("Registration error for login '%s': %v", request.Login, err)
 			auth.logger.Error(err.Error())
-			fmt.Println("aaaaaaaaaaaaaa")
-			log.Printf("User already exists: %s", request.Login)
 			http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 
 		default:
-			log.Printf("Internal error: %v", err)
 			auth.logger.Error(err.Error())
-			fmt.Println("bbbbbbbbbbbbbbbbbb")
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		}
 		return
