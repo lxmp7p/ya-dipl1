@@ -12,8 +12,8 @@ type AuthService struct {
 	repo repository.Auth
 }
 
-func NewAuthService(repo repository.Auth) AuthService {
-	return AuthService{
+func NewAuthService(repo repository.Auth) *AuthService {
+	return &AuthService{
 		repo: repo,
 	}
 }
@@ -43,4 +43,12 @@ func (auth *AuthService) Registration(ctx context.Context, login, password strin
 	}
 
 	return sessionID, nil
+}
+
+func (auth *AuthService) ValidateToken(ctx context.Context, login, hash string) (bool, error) {
+	_, err := auth.repo.ValidatePasswordHash(ctx, login, hash)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

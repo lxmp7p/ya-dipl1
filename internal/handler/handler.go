@@ -17,7 +17,7 @@ var (
 )
 
 type Handler struct {
-	Services *service.Services
+	Services service.Service
 	Config   config.Config
 	Logger   *slog.Logger
 	Database *pgxpool.Pool
@@ -46,7 +46,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 	apiRouter := chi.NewRouter()
 	authHandler := AuthHandler{
 		logger:      handler.Logger,
-		authService: services.Auth,
+		authService: authService,
 	}
 
 	apiRouter.Mount("/", authHandler.AuthRoutes())

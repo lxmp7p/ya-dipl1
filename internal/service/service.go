@@ -1,15 +1,36 @@
 package service
 
-import "log/slog"
+import (
+	"context"
+	"log/slog"
+)
 
 type Services struct {
-	Logger *slog.Logger
-	Auth   AuthService
+	logger *slog.Logger
+	auth   AuthServiceInterface
 }
 
-func NewServices(logger *slog.Logger, authService AuthService) *Services {
+type AuthServiceInterface interface {
+	Registration(ctx context.Context, login, password string) (string, error)
+	ValidateToken(ctx context.Context, login, hash string) (bool, error)
+}
+
+type Service interface {
+	Auth() AuthServiceInterface
+}
+
+// Конструктор
+func NewServices(
+	logger *slog.Logger,
+	authService AuthServiceInterface,
+) *Services {
 	return &Services{
-		Logger: logger,
-		Auth:   authService,
+		logger: logger,
+		auth:   authService,
 	}
+}
+
+// Реализация ServiceInterface
+func (s *Services) Auth() AuthServiceInterface {
+	return s.auth
 }
