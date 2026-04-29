@@ -24,3 +24,37 @@ func isUniqueViolation(err error) bool {
 	}
 	return false
 }
+
+func isDigitsOnly(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func isValidLuhn(number string) bool {
+	var sum int
+	var alternate bool
+
+	for i := len(number) - 1; i >= 0; i-- {
+		digit := int(number[i] - '0')
+
+		if alternate {
+			digit *= 2
+			if digit > 9 {
+				digit = digit%10 + 1
+			}
+		}
+
+		sum += digit
+		alternate = !alternate
+	}
+
+	return sum%10 == 0
+}
