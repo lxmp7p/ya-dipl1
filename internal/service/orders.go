@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
 
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
 )
@@ -17,18 +19,25 @@ func NewOrderService(repo repository.Order) *OrderService {
 	}
 }
 
+type OrderResponse struct {
+	Number     string    `json:"number"`
+	Status     string    `json:"status"`
+	Accrual    *float64  `json:"accrual,omitempty"`
+	UploadedAt time.Time `json:"uploaded_at"`
+}
+
 func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, userID string) error {
 	if !isDigitsOnly(orderNumber) {
-		return errors.New("bad request")
+		return errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
 	if !isValidLuhn(orderNumber) {
-		return errors.New("bad request")
+		return errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
 	order, exist, err := ors.repo.FindOrderWithUserByNumber(ctx, orderNumber)
 	if err != nil {
-		return errors.New("bad request")
+		return errors.New(http.StatusText(http.StatusBadRequest))
 	}
 
 	if exist {
@@ -42,6 +51,24 @@ func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, us
 	if err = ors.repo.Create(ctx, orderNumber, userID); err != nil {
 		return err
 	}
-	// проверка заказа в базе
+
 	return nil
+}
+
+func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderResponse, error) {
+	orders, err := ors.repo.List(ctx, userID)
+	if err != nil {
+		return []OrderResponse{}, nil
+	}
+	var ordersResult []OrderResponse
+	for _, order := range orders {
+		ordersResult = append(ordersResult, OrderResponse{
+			Number:     order.OrderNumber,
+			Status:     order.Status,
+			Accrual:    order.Accrual,
+			UploadedAt: order.UploadedAt,
+		})
+	}
+
+	return ordersResult, nil
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -11,9 +12,10 @@ import (
 type OrderData struct {
 	OrderNumber string
 	UserID      string
-	Login       string // username из таблицы users
+	Login       string
 	Status      string
-	Accrual     int
+	Accrual     *float64
+	UploadedAt  time.Time
 }
 
 func (rep *Repository) Create(ctx context.Context, orderNumber, userId string) error {
@@ -40,7 +42,8 @@ func (rep *Repository) FindOrderWithUserByNumber(ctx context.Context, orderNumbe
             o.user_id, 
             u.login,
             o.status, 
-            o.accrual
+            o.accrual,
+			uploaded_at
         FROM orders o
         JOIN auth u ON o.user_id = u.id
         WHERE o.order_number = $1
@@ -53,6 +56,7 @@ func (rep *Repository) FindOrderWithUserByNumber(ctx context.Context, orderNumbe
 		&result.Login,
 		&result.Status,
 		&result.Accrual,
+		&result.UploadedAt,
 	)
 
 	if err != nil {
@@ -63,4 +67,54 @@ func (rep *Repository) FindOrderWithUserByNumber(ctx context.Context, orderNumbe
 	}
 
 	return result, true, nil
+}
+
+func (rep *Repository) List(ctx context.Context, userId string) ([]OrderData, error) {
+	query := `
+        SELECT 
+            o.order_number, 
+            o.user_id, 
+            u.login,
+            o.status, 
+            o.accrual
+        FROM orders o
+        JOIN auth u ON o.user_id = u.id
+        WHERE o.user_id = $1
+    `
+
+	var result OrderData
+	rows, err := rep.Db.Query(ctx, query, userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []OrderData{}, ErrOrderNotFound
+		}
+		return []OrderData{}, err
+	}
+	defer rows.Close()
+
+	var orders []OrderData
+
+	for rows.Next() {
+		var order OrderData
+		err := rows.Scan(
+			&result.OrderNumber,
+			&result.UserID,
+			&result.Login,
+			&result.Status,
+			&result.Accrual,
+		)
+		if err != nil {
+			return []OrderData{}, err
+		}
+		orders = append(orders, order)
+	}
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []OrderData{}, nil
+		}
+		return []OrderData{}, err
+	}
+
+	return orders, nil
 }

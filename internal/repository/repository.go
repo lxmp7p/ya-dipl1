@@ -26,4 +26,5 @@ type Auth interface {
 type Order interface {
 	Create(ctx context.Context, orderNumber string, userId string) error
 	FindOrderWithUserByNumber(ctx context.Context, orderNumber string) (OrderData, bool, error)
+	List(ctx context.Context, userId string) ([]OrderData, error)
 }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -20,6 +21,7 @@ func (orders *OrderHandler) OrdersRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/", orders.UploadOrder)
+	r.Get("/", orders.List)
 
 	return r
 }
@@ -50,4 +52,20 @@ func (orders *OrderHandler) UploadOrder(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (orders *OrderHandler) List(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	result, err := orders.orderService.List(r.Context(), userID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusAccepted)
+	json.NewEncoder(w).Encode(result)
 }

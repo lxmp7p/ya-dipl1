@@ -37,13 +37,6 @@ func (handler *Handler) InitRoutes() chi.Router {
 	authService := service.NewAuthService(&repo)
 	orderService := service.NewOrderService(&repo)
 
-	services := service.NewServices(
-		handler.Logger,
-		authService,
-	)
-
-	handler.Services = services
-
 	apiRouter := chi.NewRouter()
 	authHandler := AuthHandler{
 		logger:      handler.Logger,

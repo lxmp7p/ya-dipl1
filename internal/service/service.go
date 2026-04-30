@@ -26,17 +26,6 @@ type Service interface {
 	Order() OrderServiceInterface
 }
 
-// Конструктор
-func NewServices(
-	logger *slog.Logger,
-	authService AuthServiceInterface,
-) *Services {
-	return &Services{
-		logger: logger,
-		auth:   authService,
-	}
-}
-
 // Реализация ServiceInterface
 func (s *Services) Auth() AuthServiceInterface {
 	return s.auth
