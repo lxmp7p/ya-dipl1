@@ -77,7 +77,7 @@ func (rep *Repository) List(ctx context.Context, userId string) ([]OrderData, er
             u.login,
             o.status, 
             o.accrual,
-			uploaded_at
+			o.uploaded_at
         FROM orders o
         JOIN auth u ON o.user_id = u.id
         WHERE o.user_id = $1
