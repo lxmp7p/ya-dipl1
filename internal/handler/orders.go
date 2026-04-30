@@ -74,7 +74,7 @@ func (orders *OrderHandler) List(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(result)
-	orders.logger.Debug("Error encoding orders:", "err", err)
-
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		orders.logger.Debug("Error encoding orders:", "err", err)
+	}
 }
