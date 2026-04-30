@@ -82,7 +82,6 @@ func (rep *Repository) List(ctx context.Context, userId string) ([]OrderData, er
         WHERE o.user_id = $1
     `
 
-	var result OrderData
 	rows, err := rep.Db.Query(ctx, query, userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -97,23 +96,16 @@ func (rep *Repository) List(ctx context.Context, userId string) ([]OrderData, er
 	for rows.Next() {
 		var order OrderData
 		err := rows.Scan(
-			&result.OrderNumber,
-			&result.UserID,
-			&result.Login,
-			&result.Status,
-			&result.Accrual,
+			&order.OrderNumber,
+			&order.UserID,
+			&order.Login,
+			&order.Status,
+			&order.Accrual,
 		)
 		if err != nil {
 			return []OrderData{}, err
 		}
 		orders = append(orders, order)
-	}
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return []OrderData{}, nil
-		}
-		return []OrderData{}, err
 	}
 
 	return orders, nil
