@@ -67,7 +67,7 @@ func (orders *OrderHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(result) == 0 {
-		http.Error(w, http.StatusText(http.StatusNoContent), http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
