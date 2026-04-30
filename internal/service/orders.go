@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -10,20 +11,22 @@ import (
 )
 
 type OrderService struct {
-	repo repository.Order
+	logger *slog.Logger
+	repo   repository.Order
 }
 
-func NewOrderService(repo repository.Order) *OrderService {
+func NewOrderService(logger *slog.Logger, repo repository.Order) *OrderService {
 	return &OrderService{
-		repo: repo,
+		logger: logger,
+		repo:   repo,
 	}
 }
 
 type OrderResponse struct {
-	Number     string    `json:"number"`
-	Status     string    `json:"status"`
-	Accrual    *float64  `json:"accrual,omitempty"`
-	UploadedAt time.Time `json:"uploaded_at"`
+	Number     string   `json:"number"`
+	Status     string   `json:"status"`
+	Accrual    *float64 `json:"accrual,omitempty"`
+	UploadedAt string   `json:"uploaded_at"`
 }
 
 func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, userID string) error {
@@ -58,6 +61,7 @@ func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, us
 func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderResponse, error) {
 	orders, err := ors.repo.List(ctx, userID)
 	if err != nil {
+		ors.logger.Error(err.Error())
 		return []OrderResponse{}, nil
 	}
 	var ordersResult []OrderResponse
@@ -66,7 +70,7 @@ func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderRespon
 			Number:     order.OrderNumber,
 			Status:     order.Status,
 			Accrual:    order.Accrual,
-			UploadedAt: order.UploadedAt,
+			UploadedAt: order.UploadedAt.Format(time.RFC3339),
 		})
 	}
 
