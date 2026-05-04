@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/lxmp7p/ya-dipl1/internal/repository"
 	"github.com/lxmp7p/ya-dipl1/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -59,7 +58,7 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 }
 
 func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
-	_, ok := r.Context().Value("user_id").(string)
+	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -79,9 +78,9 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = orders.userService.Withdrawn(r.Context(), req.Order, req.Sum)
+	err = orders.userService.Withdrawn(r.Context(), req.Order, req.Sum, userID)
 	if err != nil {
-		if errors.As(err, &repository.ErrOrderNotFound) {
+		if errors.Is(err, service.ErrOrderInvalid) {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 			return
 		}

@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"errors"
 	"log/slog"
-	"net/http"
 
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
 )
@@ -45,18 +43,12 @@ func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResp
 	}, nil
 }
 
-func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money float64) error {
-	order, exist, err := ors.orderRepo.FindOrderWithUserByNumber(ctx, orderNumber)
-
-	if err != nil {
-		return errors.New(http.StatusText(http.StatusBadRequest))
+func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money float64, userID string) error {
+	if !isValidLuhn(orderNumber) {
+		return ErrOrderInvalid
 	}
 
-	if !exist {
-		return ErrOrderExists
-	}
-
-	err = ors.repo.Withdrawn(ctx, money, order.UserID)
+	err := ors.repo.Withdrawn(ctx, money, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())
 		return err
