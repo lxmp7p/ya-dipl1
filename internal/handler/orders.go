@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -72,9 +73,15 @@ func (orders *OrderHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(result); err != nil {
+	buf := &bytes.Buffer{}
+	if err := json.NewEncoder(buf).Encode(result); err != nil {
 		orders.logger.Debug("Error encoding orders:", "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(buf.Bytes())
+
 }
