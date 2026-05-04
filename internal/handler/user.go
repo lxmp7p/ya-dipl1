@@ -21,8 +21,8 @@ type UserHandler struct {
 func (orders *UserHandler) UsersRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/balance", orders.Balance)
-	r.Post("/balance/withdraw", orders.Withdrawn)
+	r.Get("/", orders.Balance)
+	r.Post("/withdraw", orders.Withdrawn)
 
 	return r
 }
