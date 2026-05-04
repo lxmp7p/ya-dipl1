@@ -27,9 +27,6 @@ type Order interface {
 	Create(ctx context.Context, orderNumber string, userId string) error
 	FindOrderWithUserByNumber(ctx context.Context, orderNumber string) (OrderData, bool, error)
 	List(ctx context.Context, userId string) ([]OrderData, error)
-
-	GetOrderByNumber(ctx context.Context, orderNumber string) (*OrderData, error)
-	UpdateOrderStatus(ctx context.Context, orderNumber string, status string, accrual *float64) error
 }
 
 type User interface {

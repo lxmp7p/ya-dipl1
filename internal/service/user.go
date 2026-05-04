@@ -13,8 +13,8 @@ type UserService struct {
 }
 
 type BalanceResponse struct {
-	Current   *float64 `json:"current,omitempty"`
-	Withdrawn *float64 `json:"withdrawn,omitempty"`
+	Current   float64 `json:"current,omitempty"`
+	Withdrawn float64 `json:"withdrawn,omitempty"`
 }
 
 func NewUserService(logger *slog.Logger, repo repository.User) *UserService {
@@ -32,7 +32,7 @@ func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResp
 	}
 
 	return BalanceResponse{
-		Current:   &balance.Balance,
-		Withdrawn: &balance.Withdrawn,
+		Current:   balance.Balance,
+		Withdrawn: balance.Withdrawn,
 	}, nil
 }

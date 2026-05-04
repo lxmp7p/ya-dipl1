@@ -68,7 +68,7 @@ func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderRespon
 	orders, err := ors.repo.List(ctx, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())
-		return []OrderResponse{}, nil
+		return []OrderResponse{}, err
 	}
 	var ordersResult []OrderResponse
 	for _, order := range orders {
@@ -81,29 +81,4 @@ func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderRespon
 	}
 
 	return ordersResult, nil
-}
-
-func (ors *OrderService) ProcessOrderStatus(ctx context.Context, orderNumber string, newStatus string, accrual *float64) error {
-	order, err := ors.repo.GetOrderByNumber(ctx, orderNumber)
-	if err != nil {
-		return err
-	}
-
-	if order.Status == "PROCESSED" {
-		return nil
-	}
-
-	err = ors.repo.UpdateOrderStatus(ctx, orderNumber, newStatus, accrual)
-	if err != nil {
-		return err
-	}
-
-	if newStatus == "PROCESSED" && accrual != nil && *accrual > 0 {
-		_, err = ors.userRepo.AddBalance(ctx, order.UserID, *accrual)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
