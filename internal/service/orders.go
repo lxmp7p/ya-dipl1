@@ -11,8 +11,9 @@ import (
 )
 
 type OrderService struct {
-	logger *slog.Logger
-	repo   repository.Order
+	logger   *slog.Logger
+	repo     repository.Order
+	userRepo repository.User
 }
 
 func NewOrderService(logger *slog.Logger, repo repository.Order) *OrderService {
@@ -72,6 +73,9 @@ func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderRespon
 			Accrual:    order.Accrual,
 			UploadedAt: order.UploadedAt.Format(time.RFC3339),
 		})
+		if order.Status == "PROCESSED" {
+			ors.userRepo.AddBalance(ctx, userID, *order.Accrual)
+		}
 	}
 
 	return ordersResult, nil

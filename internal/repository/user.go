@@ -29,3 +29,22 @@ func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo,
 
 	return balance, nil
 }
+
+func (rep *Repository) AddBalance(ctx context.Context, userId string, amount float64) (BalanceInfo, error) {
+	query := `
+        INSERT INTO users (user_id, balance, withdrawn) 
+        VALUES ($1, $2, $3)
+        ON CONFLICT (user_id) DO UPDATE 
+        SET balance = users.balance + $2
+        RETURNING balance, withdrawn
+    `
+
+	var balance BalanceInfo
+	err := rep.Db.QueryRow(ctx, query, userId, amount, 0).Scan(&balance.Balance, &balance.Withdrawn)
+
+	if err != nil {
+		return BalanceInfo{}, err
+	}
+
+	return balance, nil
+}
