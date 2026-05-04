@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -10,6 +11,12 @@ import (
 type BalanceInfo struct {
 	Balance   float64
 	Withdrawn float64
+}
+
+type Withdrawal struct {
+	Order       string    `json:"order"`
+	Sum         float64   `json:"sum"`
+	ProcessedAt time.Time `json:"processed_at"`
 }
 
 func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo, error) {
@@ -28,6 +35,40 @@ func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo,
 	}
 
 	return balance, nil
+}
+
+func (rep *Repository) ListWithdrawn(ctx context.Context, userId string) ([]Withdrawal, error) {
+	query := `
+        SELECT order_number, sum, processed_at 
+        FROM withdrawals 
+        WHERE user_id = $1
+        ORDER BY processed_at DESC
+    `
+
+	rows, err := rep.Db.Query(ctx, query, userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []Withdrawal{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	var withdrawals []Withdrawal
+	for rows.Next() {
+		var w Withdrawal
+		err := rows.Scan(
+			&w.Order,
+			&w.Sum,
+			&w.ProcessedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		withdrawals = append(withdrawals, w)
+	}
+
+	return withdrawals, nil
 }
 
 func (rep *Repository) AddBalance(ctx context.Context, userId string, amount float64) (BalanceInfo, error) {
@@ -49,7 +90,7 @@ func (rep *Repository) AddBalance(ctx context.Context, userId string, amount flo
 	return balance, nil
 }
 
-func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID string) error {
+func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID string, orderNumber string) error {
 	query := `
 		UPDATE users 
 		SET balance = balance - $1 
@@ -60,5 +101,12 @@ func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID stri
 	if err != nil {
 		return err
 	}
+
+	query = `
+        INSERT INTO withdrawals (order_number, sum, user_id, processed_at)
+        VALUES ($1, $2, $3, NOW())
+    `
+	_, err = rep.Db.Exec(ctx, query, orderNumber, money, userID)
+
 	return err
 }

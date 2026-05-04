@@ -18,6 +18,12 @@ type BalanceResponse struct {
 	Withdrawn float64 `json:"withdrawn,omitempty"`
 }
 
+type WithdrawnListResponse struct {
+	Order        string  `json:"order"`
+	Sum          float64 `json:"sum"`
+	Processed_at string  `json:"processed_at"`
+}
+
 func NewUserService(
 	logger *slog.Logger,
 	repo repository.User,
@@ -48,11 +54,30 @@ func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money
 		return ErrOrderInvalid
 	}
 
-	err := ors.repo.Withdrawn(ctx, money, userID)
+	balance, err := ors.repo.Balance(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if balance.Balance < money {
+		return ErrNoEnoughMoney
+	}
+
+	err = ors.repo.Withdrawn(ctx, money, userID, orderNumber)
 	if err != nil {
 		ors.logger.Error(err.Error())
 		return err
 	}
 
 	return nil
+}
+
+func (ors *UserService) ListWithdrawn(ctx context.Context, userID string) ([]repository.Withdrawal, error) {
+	withdrawals, err := ors.repo.ListWithdrawn(ctx, userID)
+	if err != nil {
+		ors.logger.Error(err.Error())
+		return []repository.Withdrawal{}, err
+	}
+
+	return withdrawals, nil
 }

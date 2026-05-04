@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	DefaultApiRoute = "/api"
+	DefaultApiRoute = "/api/user"
 )
 
 type Handler struct {
@@ -58,11 +58,11 @@ func (handler *Handler) InitRoutes() chi.Router {
 		userService: userService,
 	}
 
-	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())
+	apiRouter.Mount(DefaultApiRoute, authHandler.AuthRoutes())
 	apiRouter.Group(func(r chi.Router) {
 		r.Use(AuthMiddleware(&repo))
-		r.Mount(DefaultApiRoute+"/user/orders", orderHandler.OrdersRoutes())
-		r.Mount(DefaultApiRoute+"/user/balance", userHandler.UsersRoutes())
+		r.Mount(DefaultApiRoute+"/orders", orderHandler.OrdersRoutes())
+		r.Mount(DefaultApiRoute+"/balance", userHandler.UsersRoutes())
 	})
 	return apiRouter
 }

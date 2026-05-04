@@ -33,5 +33,6 @@ type Order interface {
 type User interface {
 	Balance(ctx context.Context, userId string) (BalanceInfo, error)
 	AddBalance(ctx context.Context, userId string, amount float64) (BalanceInfo, error)
-	Withdrawn(ctx context.Context, money float64, userID string) error
+	Withdrawn(ctx context.Context, money float64, userID string, orderNumber string) error
+	ListWithdrawn(ctx context.Context, userId string) ([]Withdrawal, error)
 }

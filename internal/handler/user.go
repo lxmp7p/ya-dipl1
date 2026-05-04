@@ -21,8 +21,9 @@ type UserHandler struct {
 func (orders *UserHandler) UsersRoutes() chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", orders.Balance)
-	r.Post("/withdraw", orders.Withdrawn)
+	r.Get("/balance", orders.Balance)
+	r.Post("/balance/withdraw", orders.Withdrawn)
+	r.Get("/withdrawals", orders.ListWithdrawn)
 
 	return r
 }
@@ -84,6 +85,10 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
 			return
 		}
+		if errors.Is(err, service.ErrNoEnoughMoney) {
+			http.Error(w, http.StatusText(http.StatusPaymentRequired), http.StatusPaymentRequired)
+			return
+		}
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
@@ -91,4 +96,29 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (orders *UserHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	result, err := orders.userService.ListWithdrawn(r.Context(), userID)
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	buf := &bytes.Buffer{}
+	if err := json.NewEncoder(buf).Encode(result); err != nil {
+		orders.logger.Debug("Error encoding orders:", "err", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(buf.Bytes())
 }

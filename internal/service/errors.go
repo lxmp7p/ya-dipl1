@@ -8,4 +8,5 @@ var (
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrOrderExists        = errors.New("order already exists")
 	ErrOrderInvalid       = errors.New("invalid order")
+	ErrNoEnoughMoney      = errors.New("no enough money")
 )

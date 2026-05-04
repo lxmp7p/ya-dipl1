@@ -6,3 +6,25 @@ CREATE TABLE orders (
     accrual DECIMAL(10,2) DEFAULT 0,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_number VARCHAR(255) UNIQUE NOT NULL,
+    user_id UUID NOT NULL REFERENCES auth(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'NEW',
+    accrual DECIMAL(10,2) DEFAULT 0,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE withdrawn (
+    id BIGSERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+	order_number VARCHAR(255) UNIQUE NOT NULL,
+    sum DECIMAL(10,2) NOT NULL DEFAULT 0,
+    processed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE withdrawn 
+ADD CONSTRAINT fk_withdrawn_user 
+FOREIGN KEY (user_id) REFERENCES auth(id);
