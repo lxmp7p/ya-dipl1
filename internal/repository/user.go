@@ -48,3 +48,17 @@ func (rep *Repository) AddBalance(ctx context.Context, userId string, amount flo
 
 	return balance, nil
 }
+
+func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID string) error {
+	query := `
+		UPDATE users 
+		SET balance = balance - $1 
+		WHERE user_id = $2
+	`
+	_, err := rep.Db.Exec(ctx, query, money, userID)
+
+	if err != nil {
+		return err
+	}
+	return err
+}

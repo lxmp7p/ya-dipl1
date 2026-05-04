@@ -18,7 +18,6 @@ var (
 )
 
 type Handler struct {
-	Services service.Service
 	Config   config.Config
 	Logger   *slog.Logger
 	Database *pgxpool.Pool
@@ -41,7 +40,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 
 	authService := service.NewAuthService(&repo)
 	orderService := service.NewOrderService(handler.Logger, &repo, &repo)
-	userService := service.NewUserService(handler.Logger, &repo)
+	userService := service.NewUserService(handler.Logger, &repo, &repo)
 
 	apiRouter := chi.NewRouter()
 	authHandler := AuthHandler{
@@ -55,7 +54,8 @@ func (handler *Handler) InitRoutes() chi.Router {
 	}
 
 	userHandler := UserHandler{
-		logger: handler.Logger, userService: userService,
+		logger:      handler.Logger,
+		userService: userService,
 	}
 
 	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())

@@ -25,17 +25,3 @@ type OrderServiceInterface interface {
 type UserServiceInterface interface {
 	Balance(ctx context.Context, userID string) (BalanceResponse, error)
 }
-
-type Service interface {
-	Auth() AuthServiceInterface
-	Order() OrderServiceInterface
-}
-
-// Реализация ServiceInterface
-func (s *Services) Auth() AuthServiceInterface {
-	return s.auth
-}
-
-func (s *Services) Order() OrderServiceInterface {
-	return s.order
-}

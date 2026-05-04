@@ -3,9 +3,12 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 
+	"github.com/lxmp7p/ya-dipl1/internal/repository"
 	"github.com/lxmp7p/ya-dipl1/internal/service"
 
 	"github.com/go-chi/chi/v5"
@@ -20,8 +23,14 @@ func (orders *UserHandler) UsersRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", orders.Balance)
+	r.Post("/withdraw", orders.Withdrawn)
 
 	return r
+}
+
+type WithdrawRequest struct {
+	Order string  `json:"order"`
+	Sum   float64 `json:"sum"`
 }
 
 func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
@@ -47,4 +56,40 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(buf.Bytes())
+}
+
+func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value("user_id").(string)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// Парсим JSON в структуру
+	var req WithdrawRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+		return
+	}
+
+	err = orders.userService.Withdrawn(r.Context(), req.Order, req.Sum)
+	if err != nil {
+		if errors.As(err, &repository.ErrOrderNotFound) {
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+			return
+		}
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	w.WriteHeader(http.StatusOK)
 }
