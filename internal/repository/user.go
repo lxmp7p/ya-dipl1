@@ -22,7 +22,7 @@ func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo,
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return BalanceInfo{}, nil
+			return BalanceInfo{Balance: 0, Withdrawn: 0}, nil
 		}
 		return BalanceInfo{}, err
 	}

@@ -13,7 +13,7 @@ type UserService struct {
 }
 
 type BalanceResponse struct {
-	Accrual   *float64 `json:"current,omitempty"`
+	Current   *float64 `json:"current,omitempty"`
 	Withdrawn *float64 `json:"withdrawn,omitempty"`
 }
 
@@ -28,11 +28,11 @@ func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResp
 	balance, err := ors.repo.Balance(ctx, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())
-		return BalanceResponse{}, nil
+		return BalanceResponse{}, err
 	}
 
 	return BalanceResponse{
-		Accrual:   &balance.Balance,
+		Current:   &balance.Balance,
 		Withdrawn: &balance.Withdrawn,
 	}, nil
 }
