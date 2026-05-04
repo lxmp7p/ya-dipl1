@@ -16,10 +16,15 @@ type OrderService struct {
 	userRepo repository.User
 }
 
-func NewOrderService(logger *slog.Logger, repo repository.Order) *OrderService {
+func NewOrderService(
+	logger *slog.Logger,
+	repo repository.Order,
+	userRepo repository.User,
+) *OrderService {
 	return &OrderService{
-		logger: logger,
-		repo:   repo,
+		logger:   logger,
+		repo:     repo,
+		userRepo: userRepo,
 	}
 }
 

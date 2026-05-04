@@ -35,7 +35,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 	repo := repository.NewRepository(handler.Database)
 
 	authService := service.NewAuthService(&repo)
-	orderService := service.NewOrderService(handler.Logger, &repo)
+	orderService := service.NewOrderService(handler.Logger, &repo, &repo)
 	userService := service.NewUserService(handler.Logger, &repo)
 
 	apiRouter := chi.NewRouter()

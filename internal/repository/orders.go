@@ -81,6 +81,7 @@ func (rep *Repository) List(ctx context.Context, userId string) ([]OrderData, er
         FROM orders o
         JOIN auth u ON o.user_id = u.id
         WHERE o.user_id = $1
+		ORDER BY o.uploaded_at DESC
     `
 
 	rows, err := rep.Db.Query(ctx, query, userId)
