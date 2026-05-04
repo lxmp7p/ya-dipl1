@@ -12,6 +12,11 @@ type UserService struct {
 	repo   repository.User
 }
 
+type BalanceResponse struct {
+	Accrual   *float64 `json:"current,omitempty"`
+	Withdrawn *float64 `json:"withdrawn,omitempty"`
+}
+
 func NewUserService(logger *slog.Logger, repo repository.User) *UserService {
 	return &UserService{
 		logger: logger,
@@ -19,13 +24,15 @@ func NewUserService(logger *slog.Logger, repo repository.User) *UserService {
 	}
 }
 
-func (ors *UserService) Balance(ctx context.Context, userID string) ([]OrderResponse, error) {
-	_, err := ors.repo.Balance(ctx, userID)
+func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResponse, error) {
+	balance, err := ors.repo.Balance(ctx, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())
-		return []OrderResponse{}, nil
+		return BalanceResponse{}, nil
 	}
-	var ordersResult []OrderResponse
 
-	return ordersResult, nil
+	return BalanceResponse{
+		Accrual:   &balance.Balance,
+		Withdrawn: &balance.Withdrawn,
+	}, nil
 }

@@ -36,11 +36,6 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(result) == 0 {
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 
 	buf := &bytes.Buffer{}
@@ -52,5 +47,4 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(buf.Bytes())
-
 }

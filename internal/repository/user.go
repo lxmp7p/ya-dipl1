@@ -3,51 +3,29 @@ package repository
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 )
 
-type UserData struct {
-	OrderNumber string
-	UserID      string
-	Login       string
-	Status      string
-	Accrual     *float64
-	UploadedAt  time.Time
+type BalanceInfo struct {
+	Balance   float64
+	Withdrawn float64
 }
 
-func (rep *Repository) Balance(ctx context.Context, userId string) (UserData, error) {
+func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo, error) {
 	query := `
-        SELECT * FROM auth WHERE id = $1
+        SELECT balance, withdrawn FROM users WHERE user_id = $1
     `
 
-	rows, err := rep.Db.Query(ctx, query, userId)
+	var balance BalanceInfo
+	err := rep.Db.QueryRow(ctx, query, userId).Scan(&balance.Balance, &balance.Withdrawn)
+
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return UserData{}, ErrOrderNotFound
+			return BalanceInfo{}, nil
 		}
-		return UserData{}, err
-	}
-	defer rows.Close()
-
-	var orders []OrderData
-
-	for rows.Next() {
-		var order OrderData
-		err := rows.Scan(
-			&order.OrderNumber,
-			&order.UserID,
-			&order.Login,
-			&order.Status,
-			&order.Accrual,
-			&order.UploadedAt,
-		)
-		if err != nil {
-			return UserData{}, err
-		}
-		orders = append(orders, order)
+		return BalanceInfo{}, err
 	}
 
-	return UserData{}, nil
+	return balance, nil
 }

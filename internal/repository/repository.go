@@ -30,5 +30,5 @@ type Order interface {
 }
 
 type User interface {
-	Balance(ctx context.Context, userId string) (UserData, error)
+	Balance(ctx context.Context, userId string) (BalanceInfo, error)
 }
