@@ -19,7 +19,7 @@ func main() {
 		panic("failed init db")
 	}
 
-	handler := handler.NewHandler(logger, database)
+	handler := handler.NewHandler(logger, database, cfg)
 	r := handler.InitRoutes()
 
 	logger.Info("Starting server", "addr", cfg.Addr)

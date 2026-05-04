@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/lxmp7p/ya-dipl1/internal/config"
@@ -23,16 +24,20 @@ type Handler struct {
 	Database *pgxpool.Pool
 }
 
-func NewHandler(logger *slog.Logger, database *pgxpool.Pool) *Handler {
+func NewHandler(logger *slog.Logger, database *pgxpool.Pool, config config.Config) *Handler {
 	return &Handler{
 		Logger:   logger,
 		Database: database,
+		Config:   config,
 	}
 }
 
 func (handler *Handler) InitRoutes() chi.Router {
 	handler.validateHandler()
 	repo := repository.NewRepository(handler.Database)
+
+	worker := utils.NewAccrualWorker(handler.Config.BalanceSystemAddr, &repo, handler.Logger)
+	worker.Start(context.Background())
 
 	authService := service.NewAuthService(&repo)
 	orderService := service.NewOrderService(handler.Logger, &repo, &repo)

@@ -3,6 +3,6 @@ CREATE TABLE orders (
     order_number VARCHAR(255) UNIQUE NOT NULL,
     user_id UUID NOT NULL REFERENCES auth(id) ON DELETE CASCADE,
     status VARCHAR(20) DEFAULT 'NEW',
-    accrual INT DEFAULT 0,
+    accrual DECIMAL(10,2) DEFAULT 0,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
