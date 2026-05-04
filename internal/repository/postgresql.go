@@ -21,7 +21,7 @@ func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 		if err := runMigrations(config.DatabaseDsn, logger); err != nil {
 			return nil, err
 		}
-		logger.Info("Migrations done ")
+		logger.Info("Migrations done")
 	}
 
 	pool, err := pgxpool.New(context.Background(), config.DatabaseDsn)
