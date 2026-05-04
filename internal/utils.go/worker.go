@@ -94,6 +94,7 @@ func (w *AccrualWorker) worker(ctx context.Context) {
 
 				if accrualResponse.Status == "PROCESSED" {
 					w.repo.Update(ctx, accrualResponse.Order, accrualResponse.Status, accrualResponse.Accrual)
+					w.repo.AddBalance(ctx, order.UserID, accrualResponse.Accrual)
 				}
 			}
 		case <-w.stopCh:
