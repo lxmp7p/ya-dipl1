@@ -20,18 +20,18 @@ type SessionData struct {
 	UserId    string
 }
 
-type User struct {
+type UserInfo struct {
 	ID           string `json:"id"`
 	Login        string `json:"login"`
 	PasswordHash string `json:"-"`
 }
 
-func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) (User, error) {
+func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) (UserInfo, error) {
 	query := `
 		INSERT INTO auth (login, password_hash)
 		VALUES ($1, $2) RETURNING id, login, password_hash
 	`
-	var user User
+	var user UserInfo
 	err := rep.Db.QueryRow(ctx, query, login, passwordHash).Scan(
 		&user.ID,
 		&user.Login,
@@ -41,7 +41,7 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return User{}, ErrUserExists
+			return UserInfo{}, ErrUserExists
 		}
 	}
 	return user, err

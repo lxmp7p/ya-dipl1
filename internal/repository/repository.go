@@ -17,7 +17,7 @@ func NewRepository(database *pgxpool.Pool) Repository {
 }
 
 type Auth interface {
-	Registration(ctx context.Context, login, passwordHash string) (User, error)
+	Registration(ctx context.Context, login, passwordHash string) (UserInfo, error)
 	GetAuthDataByLogin(ctx context.Context, login string) (AuthData, error)
 	CreateSession(ctx context.Context, userLogin, userID, sessionID string) error
 	CheckAuthDataBySession(ctx context.Context, sessionID string) (SessionData, error)
@@ -27,4 +27,8 @@ type Order interface {
 	Create(ctx context.Context, orderNumber string, userId string) error
 	FindOrderWithUserByNumber(ctx context.Context, orderNumber string) (OrderData, bool, error)
 	List(ctx context.Context, userId string) ([]OrderData, error)
+}
+
+type User interface {
+	Balance(ctx context.Context, userId string) (UserData, error)
 }
