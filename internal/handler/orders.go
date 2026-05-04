@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -48,6 +49,14 @@ func (orders *OrderHandler) UploadOrder(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := orders.orderService.UploadOrder(r.Context(), orderNumber, userID); err != nil {
+		if errors.Is(err, service.ErrOrderInvalid) {
+			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
+			return
+		}
+		if errors.Is(err, service.ErrOrderExists) {
+			http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
+			return
+		}
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

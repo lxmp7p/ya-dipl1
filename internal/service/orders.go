@@ -37,11 +37,11 @@ type OrderResponse struct {
 
 func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, userID string) error {
 	if !isDigitsOnly(orderNumber) {
-		return errors.New(http.StatusText(http.StatusBadRequest))
+		return ErrOrderInvalid
 	}
 
 	if !isValidLuhn(orderNumber) {
-		return errors.New(http.StatusText(http.StatusBadRequest))
+		return ErrOrderInvalid
 	}
 
 	order, exist, err := ors.repo.FindOrderWithUserByNumber(ctx, orderNumber)
