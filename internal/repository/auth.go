@@ -44,6 +44,17 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 			return UserInfo{}, ErrUserExists
 		}
 	}
+
+	insertQuery := `
+        INSERT INTO users (user_id, balance, withdrawn)
+        VALUES ($1, $2, $3)
+    `
+
+	_, err = rep.Db.Exec(ctx, insertQuery, user.ID, 0, 0)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
 	return user, err
 }
 

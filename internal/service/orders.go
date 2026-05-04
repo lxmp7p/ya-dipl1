@@ -78,10 +78,32 @@ func (ors *OrderService) List(ctx context.Context, userID string) ([]OrderRespon
 			Accrual:    order.Accrual,
 			UploadedAt: order.UploadedAt.Format(time.RFC3339),
 		})
-		if order.Status == "PROCESSED" {
-			ors.userRepo.AddBalance(ctx, userID, *order.Accrual)
-		}
 	}
 
 	return ordersResult, nil
+}
+
+func (ors *OrderService) ProcessOrderStatus(ctx context.Context, orderNumber string, newStatus string, accrual *float64) error {
+	order, err := ors.repo.GetOrderByNumber(ctx, orderNumber)
+	if err != nil {
+		return err
+	}
+
+	if order.Status == "PROCESSED" {
+		return nil
+	}
+
+	err = ors.repo.UpdateOrderStatus(ctx, orderNumber, newStatus, accrual)
+	if err != nil {
+		return err
+	}
+
+	if newStatus == "PROCESSED" && accrual != nil && *accrual > 0 {
+		_, err = ors.userRepo.AddBalance(ctx, order.UserID, *accrual)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
