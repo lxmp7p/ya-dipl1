@@ -62,7 +62,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 	apiRouter.Group(func(r chi.Router) {
 		r.Use(AuthMiddleware(&repo))
 		r.Mount(DefaultApiRoute+"/orders", orderHandler.OrdersRoutes())
-		r.Mount(DefaultApiRoute+"/balance", userHandler.UsersRoutes())
+		r.Mount(DefaultApiRoute+"/", userHandler.UsersRoutes())
 	})
 	return apiRouter
 }
