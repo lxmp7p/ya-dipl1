@@ -40,7 +40,7 @@ func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo,
 func (rep *Repository) ListWithdrawn(ctx context.Context, userId string) ([]Withdrawal, error) {
 	query := `
         SELECT order_number, sum, processed_at 
-        FROM withdrawals 
+        FROM withdrawn 
         WHERE user_id = $1
         ORDER BY processed_at DESC
     `
