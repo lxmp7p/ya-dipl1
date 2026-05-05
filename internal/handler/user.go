@@ -93,7 +93,7 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusOK)
 }
 
 func (orders *UserHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
