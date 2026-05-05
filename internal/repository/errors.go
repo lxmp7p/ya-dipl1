@@ -9,4 +9,5 @@ var (
 	ErrInvalidSession  = errors.New("invalid session")
 	ErrOrderNotFound   = errors.New("order not found")
 	ErrOrderExists     = errors.New("order already exists")
+	ErrNoEnoughMoney   = errors.New("no enough money")
 )

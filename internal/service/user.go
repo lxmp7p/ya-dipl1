@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
@@ -54,18 +55,12 @@ func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money
 		return ErrOrderInvalid
 	}
 
-	balance, err := ors.repo.Balance(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	if balance.Balance < money {
-		return ErrNoEnoughMoney
-	}
-
-	err = ors.repo.Withdrawn(ctx, money, userID, orderNumber)
+	err := ors.repo.Withdrawn(ctx, money, userID, orderNumber)
 	if err != nil {
 		ors.logger.Error(err.Error())
+		if errors.Is(err, repository.ErrNoEnoughMoney) {
+			return ErrNoEnoughMoney
+		}
 		return err
 	}
 
