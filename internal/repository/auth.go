@@ -46,7 +46,7 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 	}
 
 	insertQuery := `
-        INSERT INTO users (user_id, balance, withdrawn)
+        INSERT INTO balance (user_id, balance, withdrawn)
         VALUES ($1, $2, $3)
     `
 

@@ -21,7 +21,7 @@ type Withdrawal struct {
 
 func (rep *Repository) Balance(ctx context.Context, userId string) (BalanceInfo, error) {
 	query := `
-        SELECT balance, withdrawn FROM users WHERE user_id = $1
+        SELECT balance, withdrawn FROM balance WHERE user_id = $1
     `
 
 	var balance BalanceInfo
@@ -73,10 +73,10 @@ func (rep *Repository) ListWithdrawn(ctx context.Context, userId string) ([]With
 
 func (rep *Repository) AddBalance(ctx context.Context, userId string, amount float64) (BalanceInfo, error) {
 	query := `
-        INSERT INTO users (user_id, balance, withdrawn) 
+        INSERT INTO balance (user_id, balance, withdrawn) 
         VALUES ($1, $2, $3)
         ON CONFLICT (user_id) DO UPDATE 
-        SET balance = users.balance + $2
+        SET balance = balance.balance + $2
         RETURNING balance, withdrawn
     `
 
@@ -92,7 +92,7 @@ func (rep *Repository) AddBalance(ctx context.Context, userId string, amount flo
 
 func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID string, orderNumber string) error {
 	query := `
-		UPDATE users 
+		UPDATE balance 
 		SET balance = balance - $1, withdrawn = withdrawn + $1
 		WHERE user_id = $2
 	`

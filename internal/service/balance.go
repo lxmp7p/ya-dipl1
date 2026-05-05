@@ -8,7 +8,7 @@ import (
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
 )
 
-type UserService struct {
+type BalanceService struct {
 	logger    *slog.Logger
 	repo      repository.User
 	orderRepo repository.Order
@@ -25,19 +25,19 @@ type WithdrawnListResponse struct {
 	Processed_at string  `json:"processed_at"`
 }
 
-func NewUserService(
+func NewBalanceService(
 	logger *slog.Logger,
 	repo repository.User,
 	orderRepo repository.Order,
-) *UserService {
-	return &UserService{
+) *BalanceService {
+	return &BalanceService{
 		logger:    logger,
 		repo:      repo,
 		orderRepo: orderRepo,
 	}
 }
 
-func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResponse, error) {
+func (ors *BalanceService) Balance(ctx context.Context, userID string) (BalanceResponse, error) {
 	balance, err := ors.repo.Balance(ctx, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())
@@ -50,7 +50,7 @@ func (ors *UserService) Balance(ctx context.Context, userID string) (BalanceResp
 	}, nil
 }
 
-func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money float64, userID string) error {
+func (ors *BalanceService) Withdrawn(ctx context.Context, orderNumber string, money float64, userID string) error {
 	if !isValidLuhn(orderNumber) {
 		return ErrOrderInvalid
 	}
@@ -67,7 +67,7 @@ func (ors *UserService) Withdrawn(ctx context.Context, orderNumber string, money
 	return nil
 }
 
-func (ors *UserService) ListWithdrawn(ctx context.Context, userID string) ([]repository.Withdrawal, error) {
+func (ors *BalanceService) ListWithdrawn(ctx context.Context, userID string) ([]repository.Withdrawal, error) {
 	withdrawals, err := ors.repo.ListWithdrawn(ctx, userID)
 	if err != nil {
 		ors.logger.Error(err.Error())

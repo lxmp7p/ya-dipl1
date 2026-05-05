@@ -9,7 +9,7 @@ type Services struct {
 	logger *slog.Logger
 	auth   AuthServiceInterface
 	order  OrderServiceInterface
-	user   UserServiceInterface
+	user   BalanceServiceInterface
 }
 
 type AuthServiceInterface interface {
@@ -22,6 +22,6 @@ type OrderServiceInterface interface {
 	UploadOrder(ctx context.Context, orderString string, userID int) error
 }
 
-type UserServiceInterface interface {
+type BalanceServiceInterface interface {
 	Balance(ctx context.Context, userID string) (BalanceResponse, error)
 }

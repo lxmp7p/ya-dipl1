@@ -40,7 +40,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 
 	authService := service.NewAuthService(&repo)
 	orderService := service.NewOrderService(handler.Logger, &repo, &repo)
-	userService := service.NewUserService(handler.Logger, &repo, &repo)
+	balanceService := service.NewBalanceService(handler.Logger, &repo, &repo)
 
 	apiRouter := chi.NewRouter()
 	authHandler := AuthHandler{
@@ -54,15 +54,15 @@ func (handler *Handler) InitRoutes() chi.Router {
 	}
 
 	userHandler := UserHandler{
-		logger:      handler.Logger,
-		userService: userService,
+		logger:         handler.Logger,
+		balanceService: balanceService,
 	}
 
 	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())
 	apiRouter.Group(func(r chi.Router) {
 		r.Use(AuthMiddleware(&repo))
 		r.Mount(DefaultApiRoute+"/user/orders", orderHandler.OrdersRoutes())
-		r.Mount(DefaultApiRoute+"/user/balance", userHandler.UsersRoutes())
+		r.Mount(DefaultApiRoute+"/user/balance", userHandler.BalanceRoutes())
 		r.Get(DefaultApiRoute+"/user/withdrawals", userHandler.ListWithdrawn)
 	})
 	return apiRouter

@@ -13,7 +13,7 @@ CREATE TABLE sessions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE users (
+CREATE TABLE balance (
     user_id UUID PRIMARY KEY,
 	balance DECIMAL(10,2) NOT NULL DEFAULT 0,
 	withdrawn DECIMAL(10,2) NOT NULL DEFAULT 0
@@ -23,6 +23,6 @@ ALTER TABLE sessions
 ADD CONSTRAINT fk_sessions_user 
 FOREIGN KEY (user_id) REFERENCES auth(id);
 
-ALTER TABLE users 
+ALTER TABLE balance 
 ADD CONSTRAINT fk_sessions_user 
 FOREIGN KEY (user_id) REFERENCES auth(id);

@@ -14,11 +14,11 @@ import (
 )
 
 type UserHandler struct {
-	logger      *slog.Logger
-	userService *service.UserService
+	logger         *slog.Logger
+	balanceService *service.BalanceService
 }
 
-func (orders *UserHandler) UsersRoutes() chi.Router {
+func (orders *UserHandler) BalanceRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", orders.Balance)
@@ -38,7 +38,7 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	result, err := orders.userService.Balance(r.Context(), userID)
+	result, err := orders.balanceService.Balance(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -77,7 +77,7 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = orders.userService.Withdrawn(r.Context(), req.Order, req.Sum, userID)
+	err = orders.balanceService.Withdrawn(r.Context(), req.Order, req.Sum, userID)
 	if err != nil {
 		if errors.Is(err, service.ErrOrderInvalid) {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -102,7 +102,7 @@ func (orders *UserHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	result, err := orders.userService.ListWithdrawn(r.Context(), userID)
+	result, err := orders.balanceService.ListWithdrawn(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
