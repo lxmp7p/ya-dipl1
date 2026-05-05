@@ -17,7 +17,7 @@ var (
 
 func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
 	if config.DatabaseDsn != "" {
-		logger.Info("Running migrations....")
+		logger.Info("Running migrations...")
 		if err := runMigrations(config.DatabaseDsn, logger); err != nil {
 			return nil, err
 		}
