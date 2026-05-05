@@ -22,7 +22,7 @@ type AuthResponse struct {
 
 type AuthHandler struct {
 	logger      *slog.Logger
-	authService *service.AuthService
+	authService service.AuthServiceInterface
 }
 
 func (r *AuthRequest) Validate() error {

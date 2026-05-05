@@ -38,24 +38,25 @@ func (handler *Handler) InitRoutes() chi.Router {
 	worker := utils.NewAccrualWorker(handler.Config.BalanceSystemAddr, &repo, handler.Logger)
 	worker.Start(context.Background())
 
-	authService := service.NewAuthService(&repo)
-	orderService := service.NewOrderService(handler.Logger, &repo, &repo)
-	balanceService := service.NewBalanceService(handler.Logger, &repo, &repo)
+	services := service.NewServices(
+		handler.Logger,
+		&repo,
+	)
 
 	apiRouter := chi.NewRouter()
 	authHandler := AuthHandler{
 		logger:      handler.Logger,
-		authService: authService,
+		authService: services.Auth,
 	}
 
 	orderHandler := OrderHandler{
 		logger:       handler.Logger,
-		orderService: orderService,
+		orderService: services.Order,
 	}
 
-	userHandler := UserHandler{
+	userHandler := BalanceHandler{
 		logger:         handler.Logger,
-		balanceService: balanceService,
+		balanceService: services.Balance,
 	}
 
 	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())

@@ -13,12 +13,12 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type UserHandler struct {
+type BalanceHandler struct {
 	logger         *slog.Logger
-	balanceService *service.BalanceService
+	balanceService service.BalanceServiceInterface
 }
 
-func (orders *UserHandler) BalanceRoutes() chi.Router {
+func (orders *BalanceHandler) BalanceRoutes() chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", orders.Balance)
@@ -32,7 +32,7 @@ type WithdrawRequest struct {
 	Sum   float64 `json:"sum"`
 }
 
-func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
+func (orders *BalanceHandler) Balance(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func (orders *UserHandler) Balance(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(buf.Bytes())
 }
 
-func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
+func (orders *BalanceHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -96,7 +96,7 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (orders *UserHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
+func (orders *BalanceHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

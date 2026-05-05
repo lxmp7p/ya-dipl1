@@ -16,7 +16,7 @@ import (
 
 type OrderHandler struct {
 	logger       *slog.Logger
-	orderService *service.OrderService
+	orderService service.OrderServiceInterface
 }
 
 func (orders *OrderHandler) OrdersRoutes() chi.Router {
