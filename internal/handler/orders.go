@@ -57,6 +57,10 @@ func (orders *OrderHandler) UploadOrder(w http.ResponseWriter, r *http.Request) 
 			http.Error(w, http.StatusText(http.StatusConflict), http.StatusConflict)
 			return
 		}
+		if errors.Is(err, service.ErrUserOrderExists) {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

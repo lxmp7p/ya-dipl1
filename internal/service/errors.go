@@ -7,6 +7,7 @@ var (
 	ErrUserExists         = errors.New("user already exists")
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrOrderExists        = errors.New("order already exists")
+	ErrUserOrderExists    = errors.New("order already loaded this user")
 	ErrOrderInvalid       = errors.New("invalid order")
 	ErrNoEnoughMoney      = errors.New("no enough money")
 )

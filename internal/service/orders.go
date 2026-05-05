@@ -53,7 +53,7 @@ func (ors *OrderService) UploadOrder(ctx context.Context, orderNumber string, us
 		if order.UserID != userID {
 			return ErrOrderExists
 		} else {
-			return nil
+			return ErrUserOrderExists
 		}
 	}
 
