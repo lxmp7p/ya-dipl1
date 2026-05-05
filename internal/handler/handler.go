@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"log/slog"
 
 	"github.com/lxmp7p/ya-dipl1/internal/config"
@@ -10,7 +9,6 @@ import (
 	"github.com/lxmp7p/ya-dipl1/internal/utils.go"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (
@@ -18,29 +16,25 @@ var (
 )
 
 type Handler struct {
-	Config   config.Config
-	Logger   *slog.Logger
-	Database *pgxpool.Pool
+	Config     config.Config
+	Logger     *slog.Logger
+	Repository repository.Repository
 }
 
-func NewHandler(logger *slog.Logger, database *pgxpool.Pool, config config.Config) *Handler {
+func NewHandler(logger *slog.Logger, repository repository.Repository, config config.Config) *Handler {
 	return &Handler{
-		Logger:   logger,
-		Database: database,
-		Config:   config,
+		Logger:     logger,
+		Repository: repository,
+		Config:     config,
 	}
 }
 
 func (handler *Handler) InitRoutes() chi.Router {
 	handler.validateHandler()
-	repo := repository.NewRepository(handler.Database)
-
-	worker := utils.NewAccrualWorker(handler.Config.BalanceSystemAddr, &repo, handler.Logger)
-	worker.Start(context.Background())
 
 	services := service.NewServices(
 		handler.Logger,
-		&repo,
+		&handler.Repository,
 	)
 
 	apiRouter := chi.NewRouter()
@@ -61,7 +55,7 @@ func (handler *Handler) InitRoutes() chi.Router {
 
 	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())
 	apiRouter.Group(func(r chi.Router) {
-		r.Use(AuthMiddleware(&repo))
+		r.Use(AuthMiddleware(&handler.Repository))
 		r.Mount(DefaultApiRoute+"/user/orders", orderHandler.OrdersRoutes())
 		r.Mount(DefaultApiRoute+"/user/balance", userHandler.BalanceRoutes())
 		r.Get(DefaultApiRoute+"/user/withdrawals", userHandler.ListWithdrawn)

@@ -15,21 +15,23 @@ var (
 	migrationsPath = "file://migrations"
 )
 
-func InitDB(config config.Config, logger *slog.Logger) (*pgxpool.Pool, error) {
+func InitDB(config config.Config, logger *slog.Logger) (Repository, error) {
 	if config.DatabaseDsn != "" {
 		logger.Info("Running migrations...")
 		if err := runMigrations(config.DatabaseDsn, logger); err != nil {
-			return nil, err
+			return Repository{}, err
 		}
 		logger.Info("Migrations done")
 	}
 
 	pool, err := pgxpool.New(context.Background(), config.DatabaseDsn)
 	if err != nil {
-		return nil, err
+		return Repository{}, err
 	}
 
-	return pool, nil
+	repo := NewRepository(pool)
+
+	return repo, nil
 }
 
 func runMigrations(DSN string, logger *slog.Logger) error {

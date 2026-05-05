@@ -32,13 +32,13 @@ type WithdrawRequest struct {
 	Sum   float64 `json:"sum"`
 }
 
-func (orders *BalanceHandler) Balance(w http.ResponseWriter, r *http.Request) {
+func (balance *BalanceHandler) Balance(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	result, err := orders.balanceService.Balance(r.Context(), userID)
+	result, err := balance.balanceService.Balance(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -48,7 +48,7 @@ func (orders *BalanceHandler) Balance(w http.ResponseWriter, r *http.Request) {
 
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(result); err != nil {
-		orders.logger.Debug("Error encoding orders:", "err", err)
+		balance.logger.Debug("Error encoding orders:", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -57,7 +57,7 @@ func (orders *BalanceHandler) Balance(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(buf.Bytes())
 }
 
-func (orders *BalanceHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
+func (balance *BalanceHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -77,7 +77,7 @@ func (orders *BalanceHandler) Withdrawn(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = orders.balanceService.Withdrawn(r.Context(), req.Order, req.Sum, userID)
+	err = balance.balanceService.Withdrawn(r.Context(), req.Order, req.Sum, userID)
 	if err != nil {
 		if errors.Is(err, service.ErrOrderInvalid) {
 			http.Error(w, http.StatusText(http.StatusUnprocessableEntity), http.StatusUnprocessableEntity)
@@ -96,13 +96,13 @@ func (orders *BalanceHandler) Withdrawn(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 }
 
-func (orders *BalanceHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
+func (balance *BalanceHandler) ListWithdrawn(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(string)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-	result, err := orders.balanceService.ListWithdrawn(r.Context(), userID)
+	result, err := balance.balanceService.ListWithdrawn(r.Context(), userID)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -112,7 +112,7 @@ func (orders *BalanceHandler) ListWithdrawn(w http.ResponseWriter, r *http.Reque
 
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(result); err != nil {
-		orders.logger.Debug("Error encoding orders:", "err", err)
+		balance.logger.Debug("Error encoding orders:", "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}

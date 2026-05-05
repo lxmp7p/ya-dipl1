@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os"
 
 	"github.com/lxmp7p/ya-dipl1/internal/repository"
 
@@ -14,12 +16,17 @@ func main() {
 	logger := utils.CreateLogger()
 	cfg := config.NewConfig()
 	cfg.InitConfig()
-	database, err := repository.InitDB(cfg, logger)
+	repository, err := repository.InitDB(cfg, logger)
 	if err != nil {
-		panic("failed init db")
+		logger.Error("failed init db")
+		os.Exit(1)
 	}
 
-	handler := handler.NewHandler(logger, database, cfg)
+	worker := utils.NewAccrualWorker(cfg.BalanceSystemAddr, &repository, logger)
+	worker.Start(context.Background())
+	defer worker.Stop()
+
+	handler := handler.NewHandler(logger, repository, cfg)
 	r := handler.InitRoutes()
 
 	logger.Info("Starting server", "addr", cfg.Addr)
