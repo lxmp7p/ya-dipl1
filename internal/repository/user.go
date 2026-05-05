@@ -103,7 +103,7 @@ func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID stri
 	}
 
 	query = `
-        INSERT INTO withdrawals (order_number, sum, user_id, processed_at)
+        INSERT INTO withdrawn (order_number, sum, user_id, processed_at)
         VALUES ($1, $2, $3, NOW())
     `
 	_, err = rep.Db.Exec(ctx, query, orderNumber, money, userID)

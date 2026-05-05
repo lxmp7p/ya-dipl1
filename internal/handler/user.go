@@ -71,7 +71,6 @@ func (orders *UserHandler) Withdrawn(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	// Парсим JSON в структуру
 	var req WithdrawRequest
 	if err := json.Unmarshal(body, &req); err != nil {
 		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
