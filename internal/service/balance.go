@@ -15,8 +15,8 @@ type BalanceService struct {
 }
 
 type BalanceResponse struct {
-	Current   float64 `json:"current,omitempty"`
-	Withdrawn float64 `json:"withdrawn,omitempty"`
+	Current   float64 `json:"current,omitzero"`
+	Withdrawn float64 `json:"withdrawn,omitzero"`
 }
 
 type WithdrawnListResponse struct {

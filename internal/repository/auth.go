@@ -49,6 +49,7 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return UserInfo{}, ErrUserExists
 		}
+		return UserInfo{}, err
 	}
 
 	insertQuery := `
