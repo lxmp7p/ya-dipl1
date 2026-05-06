@@ -23,7 +23,7 @@ type AccrualWorker struct {
 	wg         sync.WaitGroup
 }
 
-var accrualResponse struct {
+type accrualResponse struct {
 	Order   string  `json:"order"`
 	Status  string  `json:"status"`
 	Accrual float64 `json:"accrual"`
@@ -67,8 +67,15 @@ func (w *AccrualWorker) worker(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			orders, _ := w.repo.ListAllOrders(ctx)
+			orders, err := w.repo.ListAllOrdersByStatuses(
+				ctx,
+				[]string{NewOrderStatus, ProcessingOrderStatus, InvalidOrderStatus},
+			)
+			if err != nil {
+				w.logger.Error("ListAllOrders failed", "error", err)
+			}
 			for _, order := range orders {
+				var response accrualResponse
 				url := fmt.Sprintf("%s/api/orders/%s", w.accrualURL, order.OrderNumber)
 				resp, err := w.client.Get(url)
 				if err != nil {
@@ -82,19 +89,19 @@ func (w *AccrualWorker) worker(ctx context.Context) {
 					continue
 				}
 
-				if err := json.Unmarshal(body, &accrualResponse); err != nil {
+				if err := json.Unmarshal(body, &response); err != nil {
 					w.logger.Error("failed to parse JSON", "error", err, "body", string(body))
 					continue
 				}
 
 				w.logger.Info("got accrual response",
-					"order", accrualResponse.Order,
-					"status", accrualResponse.Status,
-					"accrual", accrualResponse.Accrual)
+					"order", response.Order,
+					"status", response.Status,
+					"accrual", response.Accrual)
 
-				if accrualResponse.Status == "PROCESSED" {
-					w.repo.Update(ctx, accrualResponse.Order, accrualResponse.Status, accrualResponse.Accrual)
-					w.repo.AddBalance(ctx, order.UserID, accrualResponse.Accrual)
+				if response.Status == "PROCESSED" {
+					w.repo.Update(ctx, response.Order, response.Status, response.Accrual)
+					w.repo.AddBalance(ctx, order.UserID, response.Accrual)
 				}
 			}
 		case <-w.stopCh:

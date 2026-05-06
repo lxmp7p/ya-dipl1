@@ -158,6 +158,51 @@ func (rep *Repository) ListAllOrders(ctx context.Context) ([]OrderData, error) {
 	return orders, nil
 }
 
+func (rep *Repository) ListAllOrdersByStatuses(ctx context.Context, statuses []string) ([]OrderData, error) {
+	query := `
+        SELECT 
+            o.order_number, 
+            o.user_id, 
+            u.login,
+            o.status, 
+            o.accrual,
+			o.uploaded_at
+        FROM orders o
+        JOIN auth u ON o.user_id = u.id
+		WHERE o.status = ANY($1)
+		ORDER BY o.uploaded_at DESC
+    `
+
+	rows, err := rep.Db.Query(ctx, query, statuses)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return []OrderData{}, ErrOrderNotFound
+		}
+		return []OrderData{}, err
+	}
+	defer rows.Close()
+
+	var orders []OrderData
+
+	for rows.Next() {
+		var order OrderData
+		err := rows.Scan(
+			&order.OrderNumber,
+			&order.UserID,
+			&order.Login,
+			&order.Status,
+			&order.Accrual,
+			&order.UploadedAt,
+		)
+		if err != nil {
+			return []OrderData{}, err
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
 func (rep *Repository) Update(ctx context.Context, orderNumber, status string, accrual float64) error {
 	query := `
 		UPDATE orders 
