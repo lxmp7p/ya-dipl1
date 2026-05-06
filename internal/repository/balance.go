@@ -91,18 +91,32 @@ func (rep *Repository) AddBalance(ctx context.Context, userId string, amount flo
 }
 
 func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID string, orderNumber string) error {
-	query := `
-		UPDATE balance 
-		SET balance = balance - $1, withdrawn = withdrawn + $1
-		WHERE user_id = $2
-	`
-	res, err := rep.Db.Exec(ctx, query, money, userID)
-
+	tx, err := rep.Db.Begin(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 
-	if res.RowsAffected() == 0 {
+	query := `
+		UPDATE balance 
+		SET balance = balance - $1, withdrawn = withdrawn + $1
+		WHERE user_id = $2 AND balance >= $1
+		RETURNING balance
+	`
+	var newBalance float64
+	err = tx.QueryRow(ctx, query, money, userID).Scan(&newBalance)
+
+	if err != nil {
+		var exists bool
+		checkUserQuery := `SELECT EXISTS(SELECT 1 FROM auth WHERE id = $1)`
+		err = tx.QueryRow(ctx, checkUserQuery, userID).Scan(&exists)
+		if err != nil {
+			return err
+		}
+
+		if !exists {
+			return ErrUserNotFound
+		}
 		return ErrNoEnoughMoney
 	}
 
@@ -110,7 +124,11 @@ func (rep *Repository) Withdrawn(ctx context.Context, money float64, userID stri
         INSERT INTO withdrawn (order_number, sum, user_id, processed_at)
         VALUES ($1, $2, $3, NOW())
     `
-	_, err = rep.Db.Exec(ctx, query, orderNumber, money, userID)
+	_, err = tx.Exec(ctx, query, orderNumber, money, userID)
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

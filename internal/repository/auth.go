@@ -27,12 +27,18 @@ type UserInfo struct {
 }
 
 func (rep *Repository) Registration(ctx context.Context, login, passwordHash string) (UserInfo, error) {
+	tx, err := rep.Db.Begin(ctx)
+	if err != nil {
+		return UserInfo{}, err
+	}
+	defer tx.Rollback(ctx)
+
 	query := `
 		INSERT INTO auth (login, password_hash)
 		VALUES ($1, $2) RETURNING id, login, password_hash
 	`
 	var user UserInfo
-	err := rep.Db.QueryRow(ctx, query, login, passwordHash).Scan(
+	err = tx.QueryRow(ctx, query, login, passwordHash).Scan(
 		&user.ID,
 		&user.Login,
 		&user.PasswordHash,
@@ -50,8 +56,12 @@ func (rep *Repository) Registration(ctx context.Context, login, passwordHash str
         VALUES ($1, $2, $3)
     `
 
-	_, err = rep.Db.Exec(ctx, insertQuery, user.ID, 0, 0)
+	_, err = tx.Exec(ctx, insertQuery, user.ID, 0, 0)
 	if err != nil {
+		return UserInfo{}, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
 		return UserInfo{}, err
 	}
 
