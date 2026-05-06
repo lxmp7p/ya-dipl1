@@ -1,52 +1,70 @@
 package handler
 
 import (
-	"database/sql"
+	"log/slog"
+
+	"github.com/lxmp7p/ya-dipl1/internal/config"
+	"github.com/lxmp7p/ya-dipl1/internal/repository"
+	"github.com/lxmp7p/ya-dipl1/internal/service"
+	"github.com/lxmp7p/ya-dipl1/internal/utils.go"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/lxmp7p/ya-dipl1/internal/config"
-	"github.com/lxmp7p/ya-dipl1/internal/service"
-	"github.com/sirupsen/logrus"
+)
+
+var (
+	DefaultApiRoute = "/api"
 )
 
 type Handler struct {
-	Service *service.ShortenerService
+	Config     config.Config
+	Logger     *slog.Logger
+	Repository repository.Repository
 }
 
-func NewHandler(s *service.ShortenerService) *Handler {
+func NewHandler(logger *slog.Logger, repository repository.Repository, config config.Config) *Handler {
 	return &Handler{
-		Service: s,
+		Logger:     logger,
+		Repository: repository,
+		Config:     config,
 	}
 }
 
-type App struct {
-	Config   config.Config
-	Storage  service.URLstorage
-	Logger   *logrus.Logger
-	Database *sql.DB
-}
+func (handler *Handler) InitRoutes() chi.Router {
+	handler.validateHandler()
 
-func InitRoutes(app App) chi.Router {
-	app.validateApp()
-	shortenerService := &service.ShortenerService{
-		Config:   app.Config,
-		Storage:  app.Storage,
-		Database: app.Database,
-	}
-	shortenerService.StartDeleteWorker()
+	services := service.NewServices(
+		handler.Logger,
+		&handler.Repository,
+	)
 
-	handler := NewHandler(shortenerService)
 	apiRouter := chi.NewRouter()
-	apiRouter.Use(CompressMiddleware())
-	apiRouter.Use(LoggingMiddleware(app.Logger))
-	apiRouter.Use(handler.AuthMiddleware)
+	authHandler := AuthHandler{
+		logger:      handler.Logger,
+		authService: services.Auth,
+	}
 
-	apiRouter.Mount("/", ShortenerRoutes(shortenerService))
+	orderHandler := OrderHandler{
+		logger:       handler.Logger,
+		orderService: services.Order,
+	}
+
+	userHandler := BalanceHandler{
+		logger:         handler.Logger,
+		balanceService: services.Balance,
+	}
+
+	apiRouter.Mount(DefaultApiRoute+"/user", authHandler.AuthRoutes())
+	apiRouter.Group(func(r chi.Router) {
+		r.Use(AuthMiddleware(&handler.Repository))
+		r.Mount(DefaultApiRoute+"/user/orders", orderHandler.OrdersRoutes())
+		r.Mount(DefaultApiRoute+"/user/balance", userHandler.BalanceRoutes())
+		r.Get(DefaultApiRoute+"/user/withdrawals", userHandler.ListWithdrawn)
+	})
 	return apiRouter
 }
 
-func (app *App) validateApp() {
-	if app.Logger == nil {
-		app.Logger = logrus.New()
+func (handler *Handler) validateHandler() {
+	if handler.Logger == nil {
+		handler.Logger = utils.CreateLogger()
 	}
 }
